@@ -1,0 +1,130 @@
+2024-08-14 20:38:00,116 INFO: 
+  name: pretrain_mono_prepost
+  model_type: EDVRModel
+  scale: 4
+  num_gpu: 4
+  manual_seed: 10
+  datasets:[
+    train:[
+      name: REDS
+      type: REDSDatasetSTF
+      flag: grayscale
+      dataroot_gt: ../datasets/REDS/train_sharp_mono_1ch
+      dataroot_lq: ../datasets/REDS/train_sharp_mono_1ch_bicubic/train/train_sharp_bicubic/X4
+      dataroot_flow: None
+      meta_info_file: data/meta_info/meta_info_REDS_GT.txt
+      val_partition: official
+      io_backend:[
+        type: disk
+      ]
+      num_frame: 3
+      num_frame_hi: 2
+      gt_size: 256
+      interval_list: [1]
+      random_reverse: False
+      use_hflip: True
+      use_rot: True
+      num_worker_per_gpu: 3
+      batch_size_per_gpu: 1
+      dataset_enlarge_ratio: 200
+      prefetch_mode: None
+      phase: train
+      scale: 4
+    ]
+    val:[
+      name: REDS4
+      type: VideoTestDatasetSTF
+      flag: grayscale
+      dataroot_gt: ../datasets/REDS/train_sharp_mono_1ch
+      dataroot_lq: ../datasets/REDS/train_sharp_mono_1ch_bicubic/train/train_sharp_bicubic/X4
+      meta_info_file: data/meta_info/meta_info_REDSofficial4_test_GT.txt
+      io_backend:[
+        type: disk
+      ]
+      cache_data: False
+      num_frame: 3
+      num_frame_hi: 2
+      padding: reflection_circle
+      phase: val
+      scale: 4
+    ]
+  ]
+  network_g:[
+    type: EDVRSTF
+    num_in_ch: 1
+    num_out_ch: 1
+    num_feat: 128
+    num_frame: 3
+    num_frame_hi: 2
+    deformable_groups: 8
+    num_extract_block: 5
+    num_reconstruct_block: 40
+    center_frame_idx: None
+    hr_in: False
+    with_predeblur: False
+    with_tsa: True
+  ]
+  path:[
+    strict_load_g: False
+    resume_state: None
+    experiments_root: /home/tangs_alcf/conda/XFusion/train/experiments/pretrain_mono_prepost
+    models: /home/tangs_alcf/conda/XFusion/train/experiments/pretrain_mono_prepost/models
+    training_states: /home/tangs_alcf/conda/XFusion/train/experiments/pretrain_mono_prepost/training_states
+    log: /home/tangs_alcf/conda/XFusion/train/experiments/pretrain_mono_prepost
+    visualization: /home/tangs_alcf/conda/XFusion/train/experiments/pretrain_mono_prepost/visualization
+  ]
+  train:[
+    optim_g:[
+      type: Adam
+      lr: 0.0001
+      weight_decay: 0
+      betas: [0.9, 0.99]
+    ]
+    scheduler:[
+      type: CosineAnnealingRestartLR
+      periods: [50000, 100000, 150000, 150000, 150000]
+      restart_weights: [1, 0.5, 0.5, 0.5, 0.5]
+      eta_min: 1e-07
+    ]
+    total_iter: 600000
+    warmup_iter: -1
+    tsa_iter: 50000
+    dcn_lr_mul: 1
+    pixel_opt:[
+      type: CharbonnierLoss
+      loss_weight: 1.0
+      reduction: sum
+    ]
+  ]
+  val:[
+    val_freq: 5000.0
+    save_img: False
+    metrics:[
+      psnr:[
+        type: calculate_psnr
+        crop_border: 0
+        test_y_channel: False
+      ]
+    ]
+  ]
+  logger:[
+    print_freq: 100
+    save_checkpoint_freq: 5000.0
+    use_tb_logger: True
+    wandb:[
+      project: None
+      resume_id: None
+    ]
+  ]
+  dist_params:[
+    backend: nccl
+    port: 29500
+  ]
+  find_unused_parameters: True
+  dist: False
+  rank: 0
+  world_size: 1
+  auto_resume: False
+  is_train: True
+  root_path: /home/tangs_alcf/conda/XFusion/train
+
