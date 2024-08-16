@@ -11,8 +11,8 @@ datasets:
     name: REDS
     type: REDSDatasetSTF
     flag: grayscale
-    dataroot_gt: ../datasets/REDS/train_sharp_mono_1ch
-    dataroot_lq: ../datasets/REDS/train_sharp_mono_1ch_bicubic/train/train_sharp_bicubic/X4
+    dataroot_gt: ../../datasets/REDS/train_sharp_mono_1ch
+    dataroot_lq: ../../datasets/REDS/train_sharp_mono_1ch_bicubic/train/train_sharp_bicubic/X4
     dataroot_flow: ~
     meta_info_file: data/meta_info/meta_info_REDS_GT.txt
     val_partition: official
@@ -37,8 +37,8 @@ datasets:
     name: REDS4
     type: VideoTestDatasetSTF
     flag: grayscale
-    dataroot_gt: ../datasets/REDS/train_sharp_mono_1ch
-    dataroot_lq: ../datasets/REDS/train_sharp_mono_1ch_bicubic/train/train_sharp_bicubic/X4
+    dataroot_gt: ../../datasets/REDS/train_sharp_mono_1ch
+    dataroot_lq: ../../datasets/REDS/train_sharp_mono_1ch_bicubic/train/train_sharp_bicubic/X4
     meta_info_file: data/meta_info/meta_info_REDSofficial4_test_GT.txt
     io_backend:
       type: disk

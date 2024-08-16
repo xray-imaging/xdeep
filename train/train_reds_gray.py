@@ -3,6 +3,7 @@ import logging
 import math
 import time
 import torch
+import os
 from os import path as osp
 
 from basicsr.data import build_dataloader, build_dataset
@@ -14,6 +15,8 @@ from basicsr.utils import (AvgTimer, MessageLogger, check_resume, get_env_info, 
 from basicsr.utils.options import copy_opt_file, dict2str
 from basicsr.utils import set_random_seed
 from basicsr.utils.dist_util import get_dist_info, init_dist
+
+from pathlib import Path
 
 def _postprocess_yml_value(value):
     # None
@@ -391,7 +394,11 @@ def train_pipeline(root_path):
 
 if __name__ == '__main__':
     root_path = osp.abspath(osp.join(__file__, osp.pardir, osp.pardir))
-    root_path+='/train'
-    import os
+    
+    if Path(root_path).name == 'train':
+        pass
+    else:
+        root_path+='/train'
     os.chdir(root_path+'/basicsr')
+    print(root_path)
     train_pipeline(root_path)
