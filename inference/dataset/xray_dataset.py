@@ -731,7 +731,7 @@ class XrayVideoTestDatasetSTF(data.Dataset):
         if 'meta_info_file' in opt:
 
             self.case_frame_size = {}
-            if opt['name'].lower() in ['redsctc','xray']:
+            if opt['name'].lower() == 'xray':
                 assert type(opt['meta_info_file']) is list
                 subfolders, subfolders_lq, subfolders_gt = [], [], []
                 for k, meta_info in enumerate(opt['meta_info_file']):
@@ -754,10 +754,10 @@ class XrayVideoTestDatasetSTF(data.Dataset):
                     self.case_frame_size[line.split(' ')[0]] = tuple(map(int, line.split(' ')[-1].split('\n')[0][1:-1].split(',')))
         else:
             if opt['name'].lower() =='xray':
-                subfolders_lq = [sorted(glob.glob(osp.join(lr, '*'))) for lr in self.lq_root]
-                subfolders_lq = list(itertools.chain.from_iterable(subfolders_lq))
-                subfolders_gt = [sorted(glob.glob(osp.join(gr, '*'))) for gr in self.gt_root]
-                subfolders_gt = list(itertools.chain.from_iterable(subfolders_gt))
+                #subfolders_lq = [sorted(glob.glob(osp.join(lr, '*'))) for lr in self.lq_root]
+                subfolders_lq = list(sorted(self.lq_root))
+                #subfolders_gt = [sorted(glob.glob(osp.join(gr, '*'))) for gr in self.gt_root]
+                subfolders_gt = list(sorted(self.gt_root))
             else:
                 subfolders_lq = sorted(glob.glob(osp.join(self.lq_root, '*')))
                 subfolders_gt = sorted(glob.glob(osp.join(self.gt_root, '*')))

@@ -117,16 +117,25 @@ def yaml_load(f):
     
 
 if __name__ == '__main__':
-    #print(os.getcwd()+'/inference')
-    #os.chdir(os.getcwd()+'/inference')
-
+    
+    if 'XFusion' in Path(os.getcwd()).parts:
+        if Path(os.getcwd()).name == 'inference':
+            cdir = Path(os.getcwd())
+        elif Path(os.getcwd()).name == 'XFusion':
+            cdir = Path(os.getcwd()) + '/inference'
+    elif Path(os.getcwd()).name == 'conda':
+        cdir = str(Path(os.getcwd())) + '/XFusion/inference'
+    else:
+        raise Exception('can not parse current working directory')
+    os.chdir(cdir)
+    print(f"current directory is: {cdir}")
     parser = argparse.ArgumentParser()
     parser.add_argument('--lo_frame_sep', default=1)
     parser.add_argument('--hi_frame_sep', default=1)
     parser.add_argument('--b0', default=False)
     parser.add_argument('--img_class', default='dataset1')
     args = parser.parse_args()
-    mode = 'stf'#str(args.mode)#'bic'#'sr'#'stf'
+    mode = 'stf'
     
     b0 = int(args.b0)
     print(f'inference under {mode} mode')
@@ -139,6 +148,7 @@ if __name__ == '__main__':
 
     
     opt_path = rf'configs/config_{img_class}.yml'
+    print(f"path to config file is: {opt_path}")
     opt = yaml_load(opt_path)
 
     test_set_name = opt['name']
@@ -146,8 +156,11 @@ if __name__ == '__main__':
     out_dir = Path(f'../inf_data/{test_set_name}_stf_lr_r_{lo_frame_sep}_hr_d_{hi_frame_sep*2}_b0_{b0}')
     out_dir.mkdir(exist_ok=True,parents=True)
     
-    opt['datasets']['val']['dataroot_lq'] = [dr+f'_b0_{b0}' for dr in opt['datasets']['val']['dataroot_lq']]
-    opt['datasets']['val']['dataroot_gt'] = [dr+f'_b0_{0}' for dr in opt['datasets']['val']['dataroot_gt']]
+    # default input file structure is: */dataset[n]/HR and */dataset[n]/LR
+    # the postfixes are appended to the parent directory
+    opt['datasets']['val']['dataroot_lq'] = [dr+f'_b0_{b0}' if Path(dr).name.lower() != 'lr' else str(Path(dr).parents[0])+f'_b0_{b0}'+f"/{Path(dr).name}" for dr in opt['datasets']['val']['dataroot_lq']]
+    opt['datasets']['val']['dataroot_gt'] = [dr+f'_b0_{0}' if Path(dr).name.lower() != 'hr' else str(Path(dr).parents[0])+f'_b0_{b0}'+f"/{Path(dr).name}" for dr in opt['datasets']['val']['dataroot_gt']]
+    print(f"data paths are: {opt['datasets']['val']['dataroot_lq']} for LR and {opt['datasets']['val']['dataroot_gt']} for HR")
     
     opt['dist'] = False
     opt['manual_seed'] = 10
@@ -159,8 +172,10 @@ if __name__ == '__main__':
     model = EDVRSTFTempRank(**model_config)
     
     model.load_state_dict(torch.load(opt['path']['pretrain_network_g'])['params'])
-    model.cuda()
-    
+    try:
+        model.cuda()
+    except:
+        print("no gpu detected")
     dataset_opt = opt['datasets']['val']
     dataset_opt['scale'] = 4
     dataset_opt['gt_size'] = gt_size[:2]
@@ -185,8 +200,6 @@ if __name__ == '__main__':
             val_data = {'lq':val_data_['lq'].cuda(), 'gt':val_data_['gt'].cuda(), 'hq':val_data_['hq'][None,:,:,:].cuda()}
         else:
             val_data = {'lq':val_data_['lq'].cuda(), 'image':val_data_['image'].cuda(), 'hq':val_data_['hq'][None,:,:,:].cuda()}
-            
-        
             
         val_data['lq'] = torch.cat((dataset[max(0,int(idx-lo_frame_sep))]['lq'][model_config['center_frame_idx'],:,:,:].unsqueeze(0),\
                     val_data['lq'][0,model_config['center_frame_idx'],:,:,:].unsqueeze(0).cpu(),\
