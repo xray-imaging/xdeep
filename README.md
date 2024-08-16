@@ -7,4 +7,5 @@ This implementation is based on the [BasicSR toolbox](https://github.com/XPixelG
 
 ## Usage
 ### Virtual environment
-Conda virtual environment can be installed following `conda env create -f /path/to/stf_env_conda.yml`.
+Conda virtual environment (venv) can be installed following `conda env create -f /path/to/stf_env_conda.yml`.
+This venv has been tested on Python 3.11. Once installed, activate the venv following `conda activate stf_env`.
