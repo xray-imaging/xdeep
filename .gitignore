@@ -147,3 +147,4 @@ log_*.rst
 # data
 data/*
 inf_data/*
+datasets/*
