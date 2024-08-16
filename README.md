@@ -12,5 +12,5 @@ This venv has been tested on Python 3.11. Once installed, activate the venv foll
 
 ### Data preparation
 #### Model pretraining
-Download the high resolution and low resolution image data from [REDS dataset](https://seungjunnah.github.io/Datasets/reds) to the datasets directory at the same level of the file 
+Download the high resolution and low resolution image data from [REDS dataset](https://seungjunnah.github.io/Datasets/reds) to the datasets directory at train 
 Once downloaded, the images can be converted to gray-scale by running 
