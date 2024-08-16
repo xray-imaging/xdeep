@@ -12,7 +12,7 @@ This venv has been tested on Python 3.11. Once installed, activate the venv foll
 
 ### Data preparation
 #### Model pretraining
-Download the high resolution and low resolution image data from [REDS dataset](https://seungjunnah.github.io/Datasets/reds) to the `datasets` directory at the same level of file *compile_dataset.ipynb*.
+Download the high resolution and low resolution image data from [REDS dataset](https://seungjunnah.github.io/Datasets/reds) to the `datasets` directory at the same level of file `compile_dataset.ipynb`.
 Once downloaded, the images can be converted to gray-scale by running *compile_dataset.ipynb*.
 #### Model fine tuning
 Fine tuning data are not available at this moment. A Pytorch model fine-tuned on high-speed imaging data can be found in the `model` directory.
