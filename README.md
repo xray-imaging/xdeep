@@ -18,7 +18,13 @@ Once downloaded, the images can be converted to gray-scale by running *compile_d
 Fine tuning data are not available at this moment. A Pytorch model fine-tuned on high-speed imaging data can be found in the `model` directory.
 
 ### Training
-*Run
+Change directory to `train` and run
 ```
 python train_reds_gray.py
+```
+
+### Inference
+Change directory to `inference` and run
+```
+python infer.py
 ```
