@@ -7,3 +7,4 @@ This implementation is based on the [BasicSR toolbox](https://github.com/XPixelG
 
 ## Usage
 ### Virtual environment
+Conda virtual environment can be installed following `conda env create -f /path/to/stf_env_conda.yml`.
