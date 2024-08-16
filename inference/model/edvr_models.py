@@ -3,7 +3,7 @@ import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ops.dcn.deform_conv import ModulatedDeformConvPack, modulated_deform_conv
+from ops.dcn.deform_conv import ModulatedDeformConvPack
 
 import logging
 from distutils.version import LooseVersion

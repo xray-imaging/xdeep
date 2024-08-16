@@ -11,8 +11,8 @@ datasets:
     name: XRAY
     type: XrayVideoTestDatasetSTF
     flag: grayscale
-    dataroot_gt: [../data/dataset1_hr]
-    dataroot_lq: [../data/dataset1_lr]
+    dataroot_gt: [../data/dataset1/HR]
+    dataroot_lq: [../data/dataset1/LR]
     io_backend:
       type: disk
 

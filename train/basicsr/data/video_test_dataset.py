@@ -2,7 +2,6 @@ import glob
 import torch
 from os import path as osp
 from torch.utils import data as data
-import itertools
 from basicsr.data.data_util import duf_downsample, read_img_seq
 from basicsr.utils import get_root_logger, scandir
 from basicsr.utils.registry import DATASET_REGISTRY
