@@ -18,86 +18,11 @@ from basicsr.utils.dist_util import get_dist_info, init_dist
 
 from pathlib import Path
 
-def _postprocess_yml_value(value):
-    # None
-    if value == '~' or value.lower() == 'none':
-        return None
-    # bool
-    if value.lower() == 'true':
-        return True
-    elif value.lower() == 'false':
-        return False
-    # !!float number
-    if value.startswith('!!float'):
-        return float(value.replace('!!float', ''))
-    # number
-    if value.isdigit():
-        return int(value)
-    elif value.replace('.', '', 1).isdigit() and value.count('.') < 2:
-        return float(value)
-    # list
-    if value.startswith('['):
-        return eval(value)
-    # str
-    return value
 
-def ordered_yaml():
-    import yaml
-    from collections import OrderedDict
-    """Support OrderedDict for yaml.
 
-    Returns:
-        tuple: yaml Loader and Dumper.
-    """
-    try:
-        from yaml import CDumper as Dumper
-        from yaml import CLoader as Loader
-    except ImportError:
-        from yaml import Dumper, Loader
-
-    _mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
-
-    def dict_representer(dumper, data):
-        return dumper.represent_dict(data.items())
-
-    def dict_constructor(loader, node):
-        return OrderedDict(loader.construct_pairs(node))
-
-    Dumper.add_representer(OrderedDict, dict_representer)
-    Loader.add_constructor(_mapping_tag, dict_constructor)
-    return Loader, Dumper
-
-def yaml_load(f):
-    import yaml
-    """Load yaml file or string.
-
-    Args:
-        f (str): File path or a python string.
-
-    Returns:
-        dict: Loaded dict.
-    """
-    if os.path.isfile(f):
-        with open(f, 'r') as f:
-            return yaml.load(f, Loader=ordered_yaml()[0])
-    else:
-        return yaml.load(f, Loader=ordered_yaml()[0])
-
-def parse_options_(root_path, is_train=True):
-    import argparse
-    import random
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-opt', type=str, default='../options/train/EDVRSTF/train_EDVR_L_x4_STF_REDS_mono_prepost.yml', help='Path to option YAML file.')
-    parser.add_argument('--launcher', choices=['none', 'pytorch', 'slurm'], default='none', help='job launcher')
-    parser.add_argument('--auto_resume', action='store_true')
-    parser.add_argument('--debug', action='store_true')
-    parser.add_argument('--local-rank', type=int, default=0)
-    parser.add_argument(
-        '--force_yml', nargs='+', default=None, help='Force to update yml files. Examples: train:ema_decay=0.999')
-    args = parser.parse_args()
+def parse_options_(args):
 
     # parse yml to dict
-    print(f"debugging---{args.opt}")
     opt = yaml_load(args.opt)
 
     # distributed settings
@@ -135,7 +60,7 @@ def parse_options_(root_path, is_train=True):
             exec(eval_str)
 
     opt['auto_resume'] = args.auto_resume
-    opt['is_train'] = is_train
+    opt['is_train'] = args.is_train
 
     # debug setting
     if args.debug and not opt['name'].startswith('debug'):
@@ -161,10 +86,10 @@ def parse_options_(root_path, is_train=True):
         if (val is not None) and ('resume_state' in key or 'pretrain_network' in key):
             opt['path'][key] = osp.expanduser(val)
 
-    if is_train:
+    if args.is_train:
         experiments_root = opt['path'].get('experiments_root')
         if experiments_root is None:
-            experiments_root = osp.join(root_path, 'experiments')
+            experiments_root = osp.join(args.root_path, 'experiments')
         experiments_root = osp.join(experiments_root, opt['name'])
 
         opt['path']['experiments_root'] = experiments_root
@@ -182,7 +107,7 @@ def parse_options_(root_path, is_train=True):
     else:  # test
         results_root = opt['path'].get('results_root')
         if results_root is None:
-            results_root = osp.join(root_path, 'results')
+            results_root = osp.join(args.root_path, 'results')
         results_root = osp.join(results_root, opt['name'])
 
         opt['path']['results_root'] = results_root
@@ -265,10 +190,10 @@ def load_resume_state(opt):
     return resume_state
 
 
-def train_pipeline(root_path):
+def train_pipeline(args):
     # parse options, set distributed setting, set random seed
-    opt, args = parse_options_(root_path, is_train=True)
-    opt['root_path'] = root_path
+    opt, args = parse_options_(args.root_path)
+    opt['root_path'] = args.root_path
     if 'patchsize' in opt['network_g']:
         opt['network_g']['patchsize'] = [(sz,sz) for sz in opt['network_g']['patchsize']]
     torch.backends.cudnn.benchmark = True
@@ -390,15 +315,3 @@ def train_pipeline(root_path):
             model.validation(val_loader, current_iter, tb_logger, opt['val']['save_img'])
     if tb_logger:
         tb_logger.close()
-
-
-if __name__ == '__main__':
-    root_path = osp.abspath(osp.join(__file__, osp.pardir, osp.pardir))
-    
-    if Path(root_path).name == 'train':
-        pass
-    else:
-        root_path+='/train'
-    os.chdir(root_path+'/basicsr')
-    print(root_path)
-    train_pipeline(root_path)
