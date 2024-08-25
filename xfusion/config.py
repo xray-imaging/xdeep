@@ -37,12 +37,12 @@ SECTIONS['general'] = {
 
 SECTIONS['convert'] = {
     'dir-lo': {
-        'default': ".",
+        'default': "./train/train_sharp_bicubic/X4/",
         'type': Path,
         'help': 'name of the directory with the low resolution images',
         'metavar': 'FILE'},
     'dir-hi': {
-        'default': ".",
+        'default': "./train/train_sharp/",
         'type': Path,
         'help': 'name of the directory with the high resolution images',
         'metavar': 'FILE'},
@@ -61,12 +61,12 @@ SECTIONS['convert'] = {
 
 SECTIONS['train'] = {
     'dir-lo': {
-        'default': ".",
+        'default': "./train/lo/",
         'type': Path,
         'help': 'name of the directory with the low resolution images',
         'metavar': 'FILE'},
     'dir-hi': {
-        'default': ".",
+        'default': "./train/hi/",
         'type': Path,
         'help': 'name of the directory with the high resolution images',
         'metavar': 'FILE'},

@@ -60,6 +60,8 @@ from xfusion import log
 from xfusion import config
 from xfusion import utils
 # from xfusion import train_reds_gray
+from os import path as osp
+from pathlib import Path
 
 
 def init(args):
@@ -74,14 +76,14 @@ def convert(args):
 
 
 def train(args):
-    # root_path = osp.abspath(osp.join(__file__, osp.pardir, osp.pardir))
+    root_path = osp.abspath(osp.join(__file__, osp.pardir, osp.pardir))
     
-    # if Path(root_path).name == 'train':
-    #     pass
-    # else:
-    #     root_path+='/train'
-    # os.chdir(root_path+'/basicsr')
-    # print(root_path)
+    if Path(root_path).name == 'train':
+        pass
+    else:
+        root_path+='/train'
+    os.chdir(root_path+'/basicsr')
+    print(root_path)
     # train_reds_gray.train_pipeline(root_path)
     print('nothing')
 

@@ -21,20 +21,8 @@ from pathlib import Path
 
 
 def parse_options_(args):
-    import argparse
-    import random
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-opt', type=str, default='../options/train/EDVRSTF/train_EDVR_L_x4_STF_REDS_mono_prepost.yml', help='Path to option YAML file.')
-    parser.add_argument('--launcher', choices=['none', 'pytorch', 'slurm'], default='none', help='job launcher')
-    parser.add_argument('--auto_resume', action='store_true')
-    parser.add_argument('--debug', action='store_true')
-    parser.add_argument('--local-rank', type=int, default=0)
-    parser.add_argument(
-        '--force_yml', nargs='+', default=None, help='Force to update yml files. Examples: train:ema_decay=0.999')
-    args = parser.parse_args()
 
     # parse yml to dict
-    print(f"debugging---{args.opt}")
     opt = yaml_load(args.opt)
 
     # distributed settings
