@@ -8,7 +8,7 @@ import numpy as np
 from pathlib import Path
 
 from collections import OrderedDict
-from gdauth import log
+from xfusion import log
 
 __author__ = "Francesco De Carlo"
 __copyright__ = "Copyright (c) 2024, UChicago Argonne, LLC."
@@ -19,7 +19,7 @@ __all__ = ['config_to_list',
            'parse_known_args',
            'write']
 
-CONFIG_FILE_NAME = os.path.join(str(pathlib.Path.home()), 'gdauth.conf')
+CONFIG_FILE_NAME = os.path.join(str(pathlib.Path.home()), 'xfusion.conf')
     
 SECTIONS = OrderedDict()
 
@@ -34,30 +34,77 @@ SECTIONS['general'] = {
         'help': 'Verbose output',
         'action': 'store_true'}}
 
-SECTIONS['inference'] = {
-    'app-uuid' : {
-        'default' : '2f1fd715-ee09-43f9-9b48-1f06810bcc70',
-        'type': str,
-        'help': "App UUID see https://globus-sdk-python.readthedocs.io/en/stable/tutorial.html#tutorial-step1"},
-    'ep-uuid':{
-        'default': 'b07f6a40-672c-4ae8-b420-83eb6e925381',
-        'type': str,
-        'help': "endpoint UUID"},
-    }
 
-SECTIONS['train'] = {
-    'dir': {
-        'default': "/",
+SECTIONS['convert'] = {
+    'dir-lo': {
+        'default': ".",
         'type': Path,
-        'help': 'name of the directory to create on the Globus endpoint',
+        'help': 'name of the directory with the low resolution images',
+        'metavar': 'FILE'},
+    'dir-hi': {
+        'default': ".",
+        'type': Path,
+        'help': 'name of the directory with the high resolution images',
+        'metavar': 'FILE'},
+    'out-dir-lo': {
+        'default': ".",
+        'type': Path,
+        'help': 'name of the output directory for the low resolution images',
+        'metavar': 'FILE'},
+    'out-dir-hi': {
+        'default': ".",
+        'type': Path,
+        'help': 'name of the output directory for the high resolution images',
         'metavar': 'FILE'},
     }
 
 
-INFERENCE_PARAMS = ('inference',)
-TRAIN_PARAMS     = ('train', 'path')
+SECTIONS['train'] = {
+    'dir-lo': {
+        'default': ".",
+        'type': Path,
+        'help': 'name of the directory with the low resolution images',
+        'metavar': 'FILE'},
+    'dir-hi': {
+        'default': ".",
+        'type': Path,
+        'help': 'name of the directory with the high resolution images',
+        'metavar': 'FILE'},
+    'opt' : {
+        'default' : '.',
+        'type': str,
+        'help': "Path to option YAML file."},
+    'launcher' : {
+        'default' : 'none',
+        'choices' : ['none', 'pytorch', 'slurm'],
+        'help': "Job launcher."},
+    'auto-resume': {
+        'default': True,
+        'help': "When set auto-resume is True",
+        'action': 'store_true'},
+     'opt' : {
+        'default' : '.',
+        'type': str,
+        'help': "Path to option YAML file."},
+     'local-rank' : {
+        'default' : 0,
+        'type': int,
+        'help': "Local rank."},
+    'force-yml': {
+        'default': None,
+        'help': "When set used the yml config file"},
+    'is-train': {
+        'default': True,
+        'help': "When set train is True",
+        'action': 'store_true'},
+  }
 
-NICE_NAMES = ('General', 'Inference', 'Train')
+
+CONVERT_PARAMS   = ('convert', )
+TRAIN_PARAMS     = ('train', )
+XFUSION_PARAMS   = ('convert', 'train', )
+
+NICE_NAMES = ('General', 'Convert', 'Train')
 
 
 def get_config_name():

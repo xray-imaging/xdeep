@@ -57,6 +57,9 @@ import pathlib
 import argparse
 
 from xfusion import log
+from xfusion import config
+from xfusion import utils
+# from xfusion import train_reds_gray
 
 
 def init(args):
@@ -66,13 +69,21 @@ def init(args):
         raise RuntimeError("{0} already exists".format(args.config))
 
 
-def inference(args):
-    print("inference")
+def convert(args):
+    utils.compile_dataset(args)
 
 
 def train(args):
-    print("trian")
-
+    # root_path = osp.abspath(osp.join(__file__, osp.pardir, osp.pardir))
+    
+    # if Path(root_path).name == 'train':
+    #     pass
+    # else:
+    #     root_path+='/train'
+    # os.chdir(root_path+'/basicsr')
+    # print(root_path)
+    # train_reds_gray.train_pipeline(root_path)
+    print('nothing')
 
 def main():
 
@@ -82,12 +93,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', **config.SECTIONS['general']['config'])
 
-    inference_params   = config.INFERENCE_PARAMS
-    train_params       = config.TRAIN_PARAMS
+    convert_params = config.CONVERT_PARAMS
+    train_params   = config.TRAIN_PARAMS
 
     cmd_parsers = [
         ('init',       init,       (),               "Create configuration file"),
-        ('inference',  inference,  select_params,    "Inference"),
+        ('convert',    convert,    convert_params,   "Convert training images to gray scale"),
         ('train',      train,      train_params,     "Train"),
     ]
 
@@ -106,7 +117,7 @@ def main():
         args._func(args)
         config.log_values(args)
         # undate globus.config file
-        sections = config.GDAUTH_PARAMS
+        sections = config.XFUSION_PARAMS
         config.write(args.config, args=args, sections=sections)
     except RuntimeError as e:
         log.error(str(e))
