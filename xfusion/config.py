@@ -60,12 +60,12 @@ SECTIONS['convert'] = {
 
 
 SECTIONS['train'] = {
-    'dir-lo': {
+    'dir-lo-train': {
         'default': "./train/lo/",
         'type': Path,
         'help': 'name of the directory with the low resolution images',
         'metavar': 'FILE'},
-    'dir-hi': {
+    'dir-hi-train': {
         'default': "./train/hi/",
         'type': Path,
         'help': 'name of the directory with the high resolution images',
@@ -82,10 +82,6 @@ SECTIONS['train'] = {
         'default': True,
         'help': "When set auto-resume is True",
         'action': 'store_true'},
-     'opt' : {
-        'default' : '.',
-        'type': str,
-        'help': "Path to option YAML file."},
      'local-rank' : {
         'default' : 0,
         'type': int,

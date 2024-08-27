@@ -81,11 +81,9 @@ def train(args):
     if Path(root_path).name == 'train':
         pass
     else:
-        root_path+='/train'
+        root_path+='/xfusion/train'
     os.chdir(root_path+'/basicsr')
-    print(root_path)
     # train_reds_gray.train_pipeline(root_path)
-    print('nothing')
 
 def main():
 
