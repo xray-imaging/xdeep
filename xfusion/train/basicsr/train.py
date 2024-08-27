@@ -3,118 +3,16 @@ import logging
 import math
 import time
 import torch
-import os
 from os import path as osp
 
-from basicsr.data import build_dataloader, build_dataset
-from basicsr.data.data_sampler import EnlargedSampler
-from basicsr.data.prefetch_dataloader import CPUPrefetcher, CUDAPrefetcher
-from basicsr.models import build_model
-from basicsr.utils import (AvgTimer, MessageLogger, check_resume, get_env_info, get_root_logger, get_time_str,
+from xfusion.train.basicsr.data import build_dataloader, build_dataset
+from xfusion.train.basicsr.data.data_sampler import EnlargedSampler
+from xfusion.train.basicsr.data.prefetch_dataloader import CPUPrefetcher, CUDAPrefetcher
+from xfusion.train.basicsr.models import build_model
+from xfusion.train.basicsr.utils import (AvgTimer, MessageLogger, check_resume, get_env_info, get_root_logger, get_time_str,
                            init_tb_logger, init_wandb_logger, make_exp_dirs, mkdir_and_rename, scandir)
-from basicsr.utils.options import copy_opt_file, dict2str
-from basicsr.utils import set_random_seed
-from basicsr.utils.dist_util import get_dist_info, init_dist
+from xfusion.train.basicsr.utils.options import copy_opt_file, dict2str, parse_options
 
-from pathlib import Path
-
-
-
-def parse_options_(args):
-
-    # parse yml to dict
-    opt = yaml_load(args.opt)
-
-    # distributed settings
-    if args.launcher == 'none':
-        print(f"debugging...{opt}")
-        opt['dist'] = False
-        print('Disable distributed.', flush=True)
-    else:
-        opt['dist'] = True
-        if args.launcher == 'slurm' and 'dist_params' in opt:
-            init_dist(args.launcher, **opt['dist_params'])
-        else:
-            init_dist(args.launcher)
-    opt['rank'], opt['world_size'] = get_dist_info()
-
-    # random seed
-    seed = opt.get('manual_seed')
-    if seed is None:
-        seed = random.randint(1, 10000)
-        opt['manual_seed'] = seed
-    set_random_seed(seed + opt['rank'])
-
-    # force to update yml options
-    if args.force_yml is not None:
-        for entry in args.force_yml:
-            # now do not support creating new keys
-            keys, value = entry.split('=')
-            keys, value = keys.strip(), value.strip()
-            value = _postprocess_yml_value(value)
-            eval_str = 'opt'
-            for key in keys.split(':'):
-                eval_str += f'["{key}"]'
-            eval_str += '=value'
-            # using exec function
-            exec(eval_str)
-
-    opt['auto_resume'] = args.auto_resume
-    opt['is_train'] = args.is_train
-
-    # debug setting
-    if args.debug and not opt['name'].startswith('debug'):
-        opt['name'] = 'debug_' + opt['name']
-
-    if opt['num_gpu'] == 'auto':
-        opt['num_gpu'] = torch.cuda.device_count()
-
-    # datasets
-    for phase, dataset in opt['datasets'].items():
-        # for multiple datasets, e.g., val_1, val_2; test_1, test_2
-        phase = phase.split('_')[0]
-        dataset['phase'] = phase
-        if 'scale' in opt:
-            dataset['scale'] = opt['scale']
-        if dataset.get('dataroot_gt') is not None:
-            dataset['dataroot_gt'] = osp.expanduser(dataset['dataroot_gt'])
-        if dataset.get('dataroot_lq') is not None:
-            dataset['dataroot_lq'] = osp.expanduser(dataset['dataroot_lq'])
-
-    # paths
-    for key, val in opt['path'].items():
-        if (val is not None) and ('resume_state' in key or 'pretrain_network' in key):
-            opt['path'][key] = osp.expanduser(val)
-
-    if args.is_train:
-        experiments_root = opt['path'].get('experiments_root')
-        if experiments_root is None:
-            experiments_root = osp.join(args.root_path, 'experiments')
-        experiments_root = osp.join(experiments_root, opt['name'])
-
-        opt['path']['experiments_root'] = experiments_root
-        opt['path']['models'] = osp.join(experiments_root, 'models')
-        opt['path']['training_states'] = osp.join(experiments_root, 'training_states')
-        opt['path']['log'] = experiments_root
-        opt['path']['visualization'] = osp.join(experiments_root, 'visualization')
-
-        # change some options for debug mode
-        if 'debug' in opt['name']:
-            if 'val' in opt:
-                opt['val']['val_freq'] = 8
-            opt['logger']['print_freq'] = 1
-            opt['logger']['save_checkpoint_freq'] = 8
-    else:  # test
-        results_root = opt['path'].get('results_root')
-        if results_root is None:
-            results_root = osp.join(args.root_path, 'results')
-        results_root = osp.join(results_root, opt['name'])
-
-        opt['path']['results_root'] = results_root
-        opt['path']['log'] = results_root
-        opt['path']['visualization'] = osp.join(results_root, 'visualization')
-
-    return opt, args
 
 def init_tb_loggers(opt):
     # initialize wandb logger before tensorboard logger to allow proper sync
@@ -190,12 +88,11 @@ def load_resume_state(opt):
     return resume_state
 
 
-def train_pipeline(args):
+def train_pipeline(root_path):
     # parse options, set distributed setting, set random seed
-    opt, args = parse_options_(args.root_path)
-    opt['root_path'] = args.root_path
-    if 'patchsize' in opt['network_g']:
-        opt['network_g']['patchsize'] = [(sz,sz) for sz in opt['network_g']['patchsize']]
+    opt, args = parse_options(root_path, is_train=True)
+    opt['root_path'] = root_path
+
     torch.backends.cudnn.benchmark = True
     # torch.backends.cudnn.deterministic = True
 
@@ -214,19 +111,15 @@ def train_pipeline(args):
     # Otherwise the logger will not be properly initialized
     log_file = osp.join(opt['path']['log'], f"train_{opt['name']}_{get_time_str()}.log")
     logger = get_root_logger(logger_name='basicsr', log_level=logging.INFO, log_file=log_file)
-    #logger.info(get_env_info())
+    logger.info(get_env_info())
     logger.info(dict2str(opt))
     # initialize wandb and tb loggers
     tb_logger = init_tb_loggers(opt)
 
     # create train and validation dataloaders
-    #if opt['name'].split('_')[-1] == 'tfmer':
-    opt['datasets']['val']['scale']=4
-    opt['datasets']['val']['gt_size'] = [640,1280]
     result = create_train_val_dataloader(opt, logger)
     train_loader, train_sampler, val_loaders, total_epochs, total_iters = result
-    #data = train_loader.dataset.__getitem__(0)
-    #data_val = val_loaders[0].dataset.__getitem__(0)
+
     # create model
     model = build_model(opt)
     if resume_state:  # resume training
@@ -315,3 +208,8 @@ def train_pipeline(args):
             model.validation(val_loader, current_iter, tb_logger, opt['val']['save_img'])
     if tb_logger:
         tb_logger.close()
+
+
+if __name__ == '__main__':
+    root_path = osp.abspath(osp.join(__file__, osp.pardir, osp.pardir))
+    train_pipeline(root_path)
