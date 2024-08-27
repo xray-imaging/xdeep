@@ -2,9 +2,9 @@ import glob
 import torch
 from os import path as osp
 from torch.utils import data as data
-from basicsr.data.data_util import duf_downsample, read_img_seq
-from basicsr.utils import get_root_logger, scandir
-from basicsr.utils.registry import DATASET_REGISTRY
+from xfusion.train.basicsr.data.data_util import duf_downsample, read_img_seq
+from xfusion.train.basicsr.utils import get_root_logger, scandir
+from xfusion.train.basicsr.utils.registry import DATASET_REGISTRY
 
 import random
 import numpy as np

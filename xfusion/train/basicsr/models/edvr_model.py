@@ -1,5 +1,5 @@
-from basicsr.utils import get_root_logger
-from basicsr.utils.registry import MODEL_REGISTRY
+from xfusion.train.basicsr.utils import get_root_logger
+from xfusion.train.basicsr.utils.registry import MODEL_REGISTRY
 from .video_base_model import VideoBaseModel
 
 

@@ -4,10 +4,10 @@ import torch
 from pathlib import Path
 from torch.utils import data as data
 
-from basicsr.data.transforms import augment
-from basicsr.utils import FileClient, get_root_logger, imfrombytes, img2tensor
-from basicsr.utils.flow_util import dequantize_flow
-from basicsr.utils.registry import DATASET_REGISTRY
+from xfusion.train.basicsr.data.transforms import augment
+from xfusion.train.basicsr.utils import FileClient, get_root_logger, imfrombytes, img2tensor
+from xfusion.train.basicsr.utils.flow_util import dequantize_flow
+from xfusion.train.basicsr.utils.registry import DATASET_REGISTRY
 
 def paired_random_crop(img_gts, img_lqs, gt_patch_size, scale, gt_path=None, img_hqs = None, patch_corner = None):
     """Paired random crop. Support Numpy array and Tensor inputs.

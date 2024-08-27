@@ -3,7 +3,7 @@ from torch import nn as nn
 from torch.nn import functional as F
 import torch.utils.checkpoint as checkpoint
 import math
-from basicsr.utils.registry import ARCH_REGISTRY
+from xfusion.train.basicsr.utils.registry import ARCH_REGISTRY
 from .arch_util import DCNv2Pack, ResidualBlockNoBN, make_layer
 
 import numpy as np

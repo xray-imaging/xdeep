@@ -6,15 +6,15 @@ import torch
 import os
 from os import path as osp
 
-from basicsr.data import build_dataloader, build_dataset
-from basicsr.data.data_sampler import EnlargedSampler
-from basicsr.data.prefetch_dataloader import CPUPrefetcher, CUDAPrefetcher
-from basicsr.models import build_model
-from basicsr.utils import (AvgTimer, MessageLogger, check_resume, get_env_info, get_root_logger, get_time_str,
+from xfusion.train.basicsr.data import build_dataloader, build_dataset
+from xfusion.train.basicsr.data.data_sampler import EnlargedSampler
+from xfusion.train.basicsr.data.prefetch_dataloader import CPUPrefetcher, CUDAPrefetcher
+from xfusion.train.basicsr.models import build_model
+from xfusion.train.basicsr.utils import (AvgTimer, MessageLogger, check_resume, get_env_info, get_root_logger, get_time_str,
                            init_tb_logger, init_wandb_logger, make_exp_dirs, mkdir_and_rename, scandir)
-from basicsr.utils.options import copy_opt_file, dict2str
-from basicsr.utils import set_random_seed
-from basicsr.utils.dist_util import get_dist_info, init_dist
+from xfusion.train.basicsr.utils.options import copy_opt_file, dict2str
+from xfusion.train.basicsr.utils import set_random_seed
+from xfusion.train.basicsr.utils.dist_util import get_dist_info, init_dist
 
 from pathlib import Path
 
