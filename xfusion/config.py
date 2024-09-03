@@ -74,12 +74,22 @@ SECTIONS['train'] = {
         'default' : '.',
         'type': str,
         'help': "Path to option YAML file."},
+    'path-train-meta-info-file': {
+        'default': "data/meta_info/meta_info_REDS_GT.txt",
+        'type': Path,
+        'help': 'name of the path to training image meta data',
+        'metavar': 'FILE'},
+    'path-val-meta-info-file': {
+        'default': "data/meta_info/meta_info_REDSofficial4_test_GT.txt",
+        'type': Path,
+        'help': 'name of the path to validation image meta data',
+        'metavar': 'FILE'},
     'launcher' : {
         'default' : 'none',
         'choices' : ['none', 'pytorch', 'slurm'],
         'help': "Job launcher."},
     'auto-resume': {
-        'default': True,
+        'default': False,
         'help': "When set auto-resume is True",
         'action': 'store_true'},
      'local-rank' : {
@@ -87,8 +97,12 @@ SECTIONS['train'] = {
         'type': int,
         'help': "Local rank."},
     'force-yml': {
-        'default': None,
+        'default': 'none',
         'help': "When set used the yml config file"},
+    'debug': {
+        'default': False,
+        'help': "When set debug is True",
+        'action': 'store_true'},
     'is-train': {
         'default': True,
         'help': "When set train is True",
