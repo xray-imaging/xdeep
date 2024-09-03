@@ -145,6 +145,7 @@ Thumbs.db
 log_*.rst
 
 # data
-data/*
-inf_data/*
-datasets/*
+xfusion/train/nohup_testrun.out
+xfusion/train/script.sh
+xfusion/train/train_sharp/*
+xfusion/train/train_sharp_bicubic/*

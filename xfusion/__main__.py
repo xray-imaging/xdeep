@@ -77,6 +77,7 @@ def convert(args):
 
 
 def train(args):
+    
     root_path = osp.abspath(osp.join(__file__, osp.pardir, osp.pardir))
     
     if Path(root_path).name == 'train':
@@ -84,7 +85,8 @@ def train(args):
     else:
         root_path+='/xfusion/train'
     os.chdir(root_path+'/basicsr')
-    train_reds_gray.train_pipeline(root_path)
+    
+    train_reds_gray.train_pipeline(root_path, args)
 
 def main():
 

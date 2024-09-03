@@ -20,8 +20,11 @@ from pathlib import Path
 
 
 
-def parse_options_(args):
-
+def parse_options_(root_path, args):
+    import random
+    from xfusion.utils import yaml_load, _postprocess_yml_value
+    if args.force_yml == 'none':
+        args.force_yml = None
     # parse yml to dict
     opt = yaml_load(args.opt)
 
@@ -89,7 +92,7 @@ def parse_options_(args):
     if args.is_train:
         experiments_root = opt['path'].get('experiments_root')
         if experiments_root is None:
-            experiments_root = osp.join(args.root_path, 'experiments')
+            experiments_root = osp.join(root_path, 'experiments')
         experiments_root = osp.join(experiments_root, opt['name'])
 
         opt['path']['experiments_root'] = experiments_root
@@ -107,7 +110,7 @@ def parse_options_(args):
     else:  # test
         results_root = opt['path'].get('results_root')
         if results_root is None:
-            results_root = osp.join(args.root_path, 'results')
+            results_root = osp.join(root_path, 'results')
         results_root = osp.join(results_root, opt['name'])
 
         opt['path']['results_root'] = results_root
@@ -190,12 +193,19 @@ def load_resume_state(opt):
     return resume_state
 
 
-def train_pipeline(args):
+def train_pipeline(root_path, args):
+    
     # parse options, set distributed setting, set random seed
-    opt, args = parse_options_(args.root_path)
-    opt['root_path'] = args.root_path
-    if 'patchsize' in opt['network_g']:
-        opt['network_g']['patchsize'] = [(sz,sz) for sz in opt['network_g']['patchsize']]
+    opt, args = parse_options_(root_path, args)
+    opt['root_path'] = root_path
+    
+    opt['datasets']['train']['dataroot_gt'] = str(args.dir_hi_train)
+    opt['datasets']['train']['dataroot_lq'] = str(args.dir_lo_train)
+    opt['datasets']['val']['dataroot_gt'] = str(args.dir_hi_train)
+    opt['datasets']['val']['dataroot_lq'] = str(args.dir_lo_train)
+    opt['datasets']['train']['meta_info_file'] = str(args.path_train_meta_info_file)
+    opt['datasets']['val']['meta_info_file'] = str(args.path_val_meta_info_file)
+    
     torch.backends.cudnn.benchmark = True
     # torch.backends.cudnn.deterministic = True
 
