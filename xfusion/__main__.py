@@ -78,8 +78,8 @@ def convert(args):
 
 def train(args):
     
-    root_path = Path(__file__).parent / 'train'
-    train_reds_gray.train_pipeline(root_path, args)
+    
+    train_reds_gray.train_pipeline(args)
 
 def main():
 
