@@ -60,6 +60,7 @@ from xfusion import log
 from xfusion import config
 from xfusion import utils
 from xfusion.train import train_reds_gray
+from xfusion.inference import infer
 
 from os import path as osp
 from pathlib import Path
@@ -76,10 +77,11 @@ def convert(args):
     utils.compile_dataset(args)
 
 
-def train(args):
-    
-    
+def train(args):    
     train_reds_gray.train_pipeline(args)
+
+def inference(args):    
+    infer.inference_pipeline(args)
 
 def main():
 
@@ -89,13 +91,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', **config.SECTIONS['general']['config'])
 
-    convert_params = config.CONVERT_PARAMS
-    train_params   = config.TRAIN_PARAMS
+    convert_params   = config.CONVERT_PARAMS
+    train_params     = config.TRAIN_PARAMS
+    inference_params = config.INFERENCE_PARAMS
 
     cmd_parsers = [
         ('init',       init,       (),               "Create configuration file"),
         ('convert',    convert,    convert_params,   "Convert training images to gray scale"),
         ('train',      train,      train_params,     "Train"),
+        ('inference',  inference,  inference_params, "Inference"),
     ]
 
     subparsers = parser.add_subparsers(title="Commands", metavar='')
