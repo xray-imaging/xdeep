@@ -2,20 +2,21 @@ import os
 import cv2
 import math
 import yaml
+import torch
 import numpy as np
-from PIL import Image
-from pathlib import Path
 import argparse
+import pathlib
 
 from collections import OrderedDict
-
-from model.edvr_models import EDVRSTFTempRank
-from dataset.xray_dataset import XrayVideoTestDatasetSTF
-
-import torch
+from PIL import Image
+from pathlib import Path
 from torchvision.utils import make_grid
-from dataset.dist_util import get_dist_info
 from skimage.metrics import structural_similarity as ssim
+
+from xfusion.inference.model.edvr_models import EDVRSTFTempRank
+from xfusion.inference.dataset.xray_dataset import XrayVideoTestDatasetSTF
+from xfusion.inference.dataset.dist_util import get_dist_info
+from xfusion.utils import yaml_load
 
 
 def tensor2img(tensor, rgb2bgr=True, out_type=np.uint8, min_max=(0, 1)):
@@ -76,69 +77,14 @@ def tensor2img(tensor, rgb2bgr=True, out_type=np.uint8, min_max=(0, 1)):
         result = result[0]
     return result
 
-def ordered_yaml():
-    """Support OrderedDict for yaml.
+def inference_pipeline(args):
 
-    Returns:
-        tuple: yaml Loader and Dumper.
-    """
-    try:
-        from yaml import CDumper as Dumper
-        from yaml import CLoader as Loader
-    except ImportError:
-        from yaml import Dumper, Loader
+    # To be changed:
+    #           - all arguments are passed as args as set in the xfusion/config.py file
+    #           - relative paths are removed
 
-    _mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
-
-    def dict_representer(dumper, data):
-        return dumper.represent_dict(data.items())
-
-    def dict_constructor(loader, node):
-        return OrderedDict(loader.construct_pairs(node))
-
-    Dumper.add_representer(OrderedDict, dict_representer)
-    Loader.add_constructor(_mapping_tag, dict_constructor)
-    return Loader, Dumper
-
-def yaml_load(f):
-    """Load yaml file or string.
-
-    Args:
-        f (str): File path or a python string.
-
-    Returns:
-        dict: Loaded dict.
-    """
-    if os.path.isfile(f):
-        with open(f, 'r') as f:
-            return yaml.load(f, Loader=ordered_yaml()[0])
-    else:
-        return yaml.load(f, Loader=ordered_yaml()[0])
-    
-
-if __name__ == '__main__':
-    
-    if 'XFusion' in Path(os.getcwd()).parts:
-        if Path(os.getcwd()).name == 'inference':
-            cdir = Path(os.getcwd())
-        elif Path(os.getcwd()).name == 'XFusion':
-            cdir = Path(os.getcwd()) + '/inference'
-    elif Path(os.getcwd()).name == 'conda':
-        cdir = str(Path(os.getcwd())) + '/XFusion/inference'
-    else:
-        raise Exception('can not parse current working directory')
-    os.chdir(cdir)
-    print(f"current directory is: {cdir}")
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--lo_frame_sep', default=1)
-    parser.add_argument('--hi_frame_sep', default=1)
-    parser.add_argument('--b0', default=False)
-    parser.add_argument('--img_class', default='dataset1')
-    args = parser.parse_args()
-    mode = 'stf'
-    
     b0 = int(args.b0)
-    print(f'inference under {mode} mode')
+    print(f'inference under {args.mode} mode')
     topk_times = 5
     lo_frame_sep = int(args.lo_frame_sep)
     hi_frame_sep = int(args.hi_frame_sep)
@@ -146,10 +92,11 @@ if __name__ == '__main__':
     print(f'LR frame separation is {lo_frame_sep}')
     print(f'HR frame separation is {hi_frame_sep}')
 
-    
-    opt_path = rf'configs/config_{img_class}.yml'
+    opt_path = args.opt + '/' + rf'config_{img_class}.yml'
     print(f"path to config file is: {opt_path}")
-    opt = yaml_load(opt_path)
+
+    # builds and runs correctly up to here. Please adjust below 
+    opt = yaml_load(args.opt)
 
     test_set_name = opt['name']
     gt_size = opt['datasets']['val']['gt_size']

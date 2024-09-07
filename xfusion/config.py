@@ -109,12 +109,64 @@ SECTIONS['train'] = {
         'action': 'store_true'},
   }
 
+SECTIONS['convert'] = {
+    'dir-lo': {
+        'default': "./train/train_sharp_bicubic/X4/",
+        'type': Path,
+        'help': 'name of the directory with the low resolution images',
+        'metavar': 'FILE'},
+    'dir-hi': {
+        'default': "./train/train_sharp/",
+        'type': Path,
+        'help': 'name of the directory with the high resolution images',
+        'metavar': 'FILE'},
+    'out-dir-lo': {
+        'default': ".",
+        'type': Path,
+        'help': 'name of the output directory for the low resolution images',
+        'metavar': 'FILE'},
+    'out-dir-hi': {
+        'default': ".",
+        'type': Path,
+        'help': 'name of the output directory for the high resolution images',
+        'metavar': 'FILE'},
+    }
+
+
+SECTIONS['inference'] = {
+    'opt' : {
+        'default' : '.',
+        'type': str,
+        'help': "Path to option YAML file."},
+    'lo-frame-sep' : {
+        'default' : 1,
+        'type': int,
+        'help': "Low frame sep."},
+    'hi-frame-sep' : {
+        'default' : 1,
+        'type': int,
+        'help': "High frame sep."},
+    'b0': {
+        'default': False,
+        'help': "When set debug is True",
+        'action': 'store_true'},
+    'img-class' : {
+        'default' : 'dataset1',
+        'type': str,
+        'help': "Image class."},
+    'mode' : {
+        'default' : 'stf',
+        'type': str,
+        'help': "Mode"},
+  }
+
 
 CONVERT_PARAMS   = ('convert', )
 TRAIN_PARAMS     = ('train', )
-XFUSION_PARAMS   = ('convert', 'train', )
+INFERENCE_PARAMS = ('inference', )
+XFUSION_PARAMS   = ('convert', 'train', 'inference', )
 
-NICE_NAMES = ('General', 'Convert', 'Train')
+NICE_NAMES = ('General', 'Convert', 'Train', 'Inference')
 
 
 def get_config_name():

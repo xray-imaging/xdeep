@@ -11,8 +11,8 @@ from pathlib import Path
 
 #import sys
 #sys.path.insert(0,'/home/beams/FAST/conda/BasicSR_single_channel')
-from dataset.file_client import FileClient
-from dataset.logger import get_root_logger
+from xfusion.inference.dataset.file_client import FileClient
+from xfusion.inference.dataset.logger import get_root_logger
 
 def img2tensor(imgs, bgr2rgb=True, float32=True):
     """Numpy array to tensor.
