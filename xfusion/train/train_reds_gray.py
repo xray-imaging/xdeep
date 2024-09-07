@@ -193,7 +193,9 @@ def load_resume_state(opt):
     return resume_state
 
 
-def train_pipeline(root_path, args):
+def train_pipeline(args):
+    
+    root_path = Path(__file__).parent / 'train'
     
     # parse options, set distributed setting, set random seed
     opt, args = parse_options_(root_path, args)
