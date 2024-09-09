@@ -84,6 +84,9 @@ SECTIONS['train'] = {
         'type': Path,
         'help': 'name of the path to validation image meta data',
         'metavar': 'FILE'},
+    'pretrain_network_g': {
+        'default': 'none',
+        'help': "When set continue training from the specified model file"},
     'launcher' : {
         'default' : 'none',
         'choices' : ['none', 'pytorch', 'slurm'],

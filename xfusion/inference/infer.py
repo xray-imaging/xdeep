@@ -82,7 +82,8 @@ def inference_pipeline(args):
     # To be changed:
     #           - all arguments are passed as args as set in the xfusion/config.py file
     #           - relative paths are removed
-
+    os.chdir(Path(__file__).parent)
+    
     b0 = int(args.b0)
     print(f'inference under {args.mode} mode')
     topk_times = 5
@@ -91,12 +92,12 @@ def inference_pipeline(args):
     img_class = str(args.img_class)
     print(f'LR frame separation is {lo_frame_sep}')
     print(f'HR frame separation is {hi_frame_sep}')
-
+    
     opt_path = args.opt + '/' + rf'config_{img_class}.yml'
     print(f"path to config file is: {opt_path}")
 
     # builds and runs correctly up to here. Please adjust below 
-    opt = yaml_load(args.opt)
+    opt = yaml_load(opt_path)
 
     test_set_name = opt['name']
     gt_size = opt['datasets']['val']['gt_size']
