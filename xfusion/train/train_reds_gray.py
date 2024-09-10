@@ -27,7 +27,16 @@ def parse_options_(root_path, args):
         args.force_yml = None
     # parse yml to dict
     opt = yaml_load(args.opt)
+    if args.pretrain_network_g != 'none':
+        assert os.path.isfile(args.pretrain_network_g)
+        opt['path']['pretrain_network_g'] = args.pretrain_network_g
+        assert os.path.isdir(str(Path(args.pretrain_network_g).parents[1] / 'training_states'))
+        opt['path']['resume_state'] = str(Path(args.pretrain_network_g).parents[1] / 'training_states' / (Path(args.pretrain_network_g).stem.split('_')[-1]+'.state'))
+        
+        assert os.path.isfile(opt['path']['resume_state'])
 
+        opt['path']['strict_load_g'] = True
+        opt['path']['ignore_resume_networks'] = 'network_g'
     # distributed settings
     if args.launcher == 'none':
         print(f"debugging...{opt}")
@@ -173,7 +182,9 @@ def create_train_val_dataloader(opt, logger):
 def load_resume_state(opt):
     resume_state_path = None
     if opt['auto_resume']:
-        state_path = osp.join('experiments', opt['name'], 'training_states')
+        state_path = osp.join(opt['root_path'], 'experiments', opt['name'], 'training_states')
+        
+        print(state_path)
         if osp.isdir(state_path):
             states = list(scandir(state_path, suffix='state', recursive=False, full_path=False))
             if len(states) != 0:
@@ -195,7 +206,7 @@ def load_resume_state(opt):
 
 def train_pipeline(args):
     
-    root_path = Path(__file__).parent / 'train'
+    root_path = Path(__file__).parent
     
     # parse options, set distributed setting, set random seed
     opt, args = parse_options_(root_path, args)
@@ -220,7 +231,7 @@ def train_pipeline(args):
             mkdir_and_rename(osp.join(opt['root_path'], 'tb_logger', opt['name']))
 
     # copy the yml file to the experiment root
-    copy_opt_file(args.opt, opt['path']['experiments_root'])
+    #copy_opt_file(args.opt, opt['path']['experiments_root'])
 
     # WARNING: should not use get_root_logger in the above codes, including the called functions
     # Otherwise the logger will not be properly initialized

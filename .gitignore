@@ -146,6 +146,7 @@ log_*.rst
 
 # data
 xfusion/train/nohup_testrun.out
+xfusion/train/nohup_testrun2.out
 xfusion/train/script.sh
 xfusion/train/train_sharp/*
 xfusion/train/train_sharp_bicubic/*
