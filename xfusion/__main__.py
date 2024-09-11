@@ -63,10 +63,18 @@ from xfusion.train import train_reds_gray
 from xfusion.inference import infer
 
 from os import path as osp
-from pathlib import Path
+import urllib3
+import shutil
+import zipfile
 
 
 def init(args):
+
+    args.home.mkdir(exist_ok=True, parents=True)
+    args.train_home.mkdir(exist_ok=True, parents=True)
+    args.inference_home.mkdir(exist_ok=True, parents=True)
+    args.log_home.mkdir(exist_ok=True, parents=True)
+
     if not os.path.exists(str(args.config)):
         config.write(str(args.config))
     else:
@@ -83,6 +91,20 @@ def train(args):
 def inference(args):    
     infer.inference_pipeline(args)
 
+def download(args):
+    http = urllib3.PoolManager()
+    url = args.dir_inf
+    path = args.out_dir_inf
+    zip_file_path = pathlib.Path(path) / url.split('/')[-1]
+    #pathlib.Path(path).mkdir(exist_ok=True,parents=True)
+    
+    with http.request('GET', url, preload_content=False) as r, open(zip_file_path, 'wb') as out_file:       
+        shutil.copyfileobj(r, out_file)
+    
+    
+    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+        zip_ref.extractall(path)
+
 def main():
 
     # This is just to print nice logger messages
@@ -91,14 +113,17 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', **config.SECTIONS['general']['config'])
 
+    home_params = config.HOME_PARAMS
     convert_params   = config.CONVERT_PARAMS
     train_params     = config.TRAIN_PARAMS
     inference_params = config.INFERENCE_PARAMS
+    download_params = config.DOWNLOAD_PARAMS
 
     cmd_parsers = [
-        ('init',       init,       (),               "Create configuration file"),
+        ('init',       init,       home_params,      "Create configuration file and home directory"),
         ('convert',    convert,    convert_params,   "Convert training images to gray scale"),
         ('train',      train,      train_params,     "Train"),
+        ('download',   download,   download_params,  "Download"),
         ('inference',  inference,  inference_params, "Inference"),
     ]
 
@@ -111,7 +136,7 @@ def main():
         cmd_parser.set_defaults(_func=func)
 
     args = config.parse_known_args(parser, subparser=True)
-
+    
     try:
         # load args from default (config.py) if not changed
         args._func(args)
