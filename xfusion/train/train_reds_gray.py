@@ -27,6 +27,7 @@ def parse_options_(root_path, args):
         args.force_yml = None
     # parse yml to dict
     opt = yaml_load(args.opt)
+    print(args.pretrain_network_g)
     if args.pretrain_network_g != 'none':
         assert os.path.isfile(args.pretrain_network_g)
         opt['path']['pretrain_network_g'] = args.pretrain_network_g

@@ -20,6 +20,10 @@ __all__ = ['config_to_list',
            'write']
 
 CONFIG_FILE_NAME = os.path.join(str(pathlib.Path.home()), 'xfusion.conf')
+XFUSION_HOME = os.path.join(str(pathlib.Path.home()), 'xfusion')
+XFUSION_TRAIN_HOME = os.path.join(str(XFUSION_HOME), 'train')
+XFUSION_INFERENCE_HOME = os.path.join(str(XFUSION_HOME), 'inference')
+XFUSION_LOG_HOME = os.path.join(str(XFUSION_HOME), 'log')
     
 SECTIONS = OrderedDict()
 
@@ -32,8 +36,31 @@ SECTIONS['general'] = {
     'verbose': {
         'default': True,
         'help': 'Verbose output',
-        'action': 'store_true'}}
+        'action': 'store_true'},
+        }
 
+SECTIONS['home'] = {
+    'home': {
+        'default': XFUSION_HOME,
+        'type': Path,
+        'help': 'name of the home directory for the output files',
+        'metavar': 'FILE'},
+    'train-home': {
+        'default': XFUSION_TRAIN_HOME,
+        'type': Path,
+        'help': 'name of the home directory for the output files',
+        'metavar': 'FILE'},
+    'inference-home': {
+        'default': XFUSION_INFERENCE_HOME,
+        'type': Path,
+        'help': 'name of the home directory for the inference files',
+        'metavar': 'FILE'},
+    'log-home': {
+        'default': XFUSION_LOG_HOME,
+        'type': Path,
+        'help': 'name of the home directory for the log files',
+        'metavar': 'FILE'},
+}
 
 SECTIONS['convert'] = {
     'dir-lo': {
@@ -135,6 +162,18 @@ SECTIONS['convert'] = {
         'metavar': 'FILE'},
     }
 
+SECTIONS['download'] = {
+    'dir-inf': {
+        'default': "https://g-a0400.fd635.8443.data.globus.org/rad_00001/rad_00001.zip",
+        'type': str,
+        'help': 'name of the directory with the images for inference',
+        'metavar': 'FILE'},
+    'out-dir-inf': {
+        'default': XFUSION_INFERENCE_HOME,
+        'type': Path,
+        'help': 'name of the output directory for the low resolution images',
+        'metavar': 'FILE'},
+}
 
 SECTIONS['inference'] = {
     'opt' : {
@@ -163,13 +202,14 @@ SECTIONS['inference'] = {
         'help': "Mode"},
   }
 
-
+HOME_PARAMS = ('home', )
 CONVERT_PARAMS   = ('convert', )
 TRAIN_PARAMS     = ('train', )
 INFERENCE_PARAMS = ('inference', )
-XFUSION_PARAMS   = ('convert', 'train', 'inference', )
+DOWNLOAD_PARAMS = ('download', )
+XFUSION_PARAMS   = ('convert', 'home', 'train', 'inference', 'download')
 
-NICE_NAMES = ('General', 'Convert', 'Train', 'Inference')
+NICE_NAMES = ('General', 'Home', 'Convert', 'Train', 'Download', 'Inference')
 
 
 def get_config_name():
