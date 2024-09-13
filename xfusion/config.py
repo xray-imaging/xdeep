@@ -227,6 +227,11 @@ def get_config_name():
 
     return name
 
+def get_train_dirs():
+    config_name = get_config_name()
+    config = configparser.ConfigParser()
+    config.read([config_name])
+    return config['home']['train-home']
 
 def parse_known_args(parser, subparser=False):
     """
