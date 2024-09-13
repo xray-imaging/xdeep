@@ -208,7 +208,7 @@ def load_resume_state(opt):
 def train_pipeline(args):
     
     root_path = config.get_train_dirs()
-    
+
     # parse options, set distributed setting, set random seed
     opt, args = parse_options_(root_path, args)
     opt['root_path'] = root_path
@@ -329,7 +329,9 @@ def train_pipeline(args):
         # end of iter
 
     # end of epoch
-
+    sections = config.XFUSION_PARAMS
+    config.write(os.path.join(opt['path']['experiments_root'],'xfusion.conf'), args=args, sections=sections)
+    
     consumed_time = str(datetime.timedelta(seconds=int(time.time() - start_time)))
     logger.info(f'End of training. Time consumed: {consumed_time}')
     logger.info('Save the latest model.')
