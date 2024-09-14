@@ -39,6 +39,6 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: ../model/model_stf_xray_poisson.pth
+  pretrain_network_g: conda/XFusion/xfusion/model/model_stf_xray_poisson.pth
   strict_load_g: true
   resume_state: ~

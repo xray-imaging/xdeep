@@ -104,14 +104,22 @@ def download(args):
     url = args.dir_inf
     path = args.out_dir_inf
     zip_file_path = pathlib.Path(path) / url.split('/')[-1]
+
+    if os.path.exists(zip_file_path):
+        raise RuntimeError("{0} already exists".format(zip_file_path))
     #pathlib.Path(path).mkdir(exist_ok=True,parents=True)
-    
-    with http.request('GET', url, preload_content=False) as r, open(zip_file_path, 'wb') as out_file:       
-        shutil.copyfileobj(r, out_file)
-    
-    
-    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-        zip_ref.extractall(path)
+    else:
+        with http.request('GET', url, preload_content=False) as r, open(zip_file_path, 'wb') as out_file:       
+            shutil.copyfileobj(r, out_file)
+        
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            zip_ref.extractall(path)
+        _zip_file = zipfile.ZipFile(zip_file_path)
+        dirname = [n for n in _zip_file.namelist() if n[-3:]=='HR/']
+        print(dirname)
+        path_name = str((zip_file_path.parent / dirname[0]).parent)
+        path_rename = str((zip_file_path.parent / dirname[0]).parent)+'_b0_0'
+        os.rename(path_name,path_rename)
 
 def main():
 

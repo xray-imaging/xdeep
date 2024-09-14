@@ -17,7 +17,7 @@ from xfusion.inference.model.edvr_models import EDVRSTFTempRank
 from xfusion.inference.dataset.xray_dataset import XrayVideoTestDatasetSTF
 from xfusion.inference.dataset.dist_util import get_dist_info
 from xfusion.utils import yaml_load
-
+from xfusion import config
 
 def tensor2img(tensor, rgb2bgr=True, out_type=np.uint8, min_max=(0, 1)):
     """Convert torch Tensors into image numpy arrays.
@@ -93,7 +93,8 @@ def inference_pipeline(args):
     print(f'LR frame separation is {lo_frame_sep}')
     print(f'HR frame separation is {hi_frame_sep}')
     
-    opt_path = args.opt + '/' + rf'config_{img_class}.yml'
+    #opt_path = args.opt + '/' + rf'config_{img_class}.yml'
+    opt_path = args.opt
     print(f"path to config file is: {opt_path}")
 
     # builds and runs correctly up to here. Please adjust below 
@@ -101,8 +102,15 @@ def inference_pipeline(args):
 
     test_set_name = opt['name']
     gt_size = opt['datasets']['val']['gt_size']
-    out_dir = Path(f'../inf_data/{test_set_name}_stf_lr_r_{lo_frame_sep}_hr_d_{hi_frame_sep*2}_b0_{b0}')
+    
+    dataroot = config.get_inf_data_dirs(img_class)
+    inf_home_dir = Path(dataroot).parent
+    out_dir = inf_home_dir / f'inf_data/{test_set_name}_stf_lr_r_{lo_frame_sep}_hr_d_{hi_frame_sep*2}_b0_{b0}'
     out_dir.mkdir(exist_ok=True,parents=True)
+    
+    print(f'inference data dir is: {dataroot}')
+    opt['datasets']['val']['dataroot_lq'] = [os.path.join(dataroot,'LR')]
+    opt['datasets']['val']['dataroot_gt'] = [os.path.join(dataroot,'HR')]
     
     # default input file structure is: */dataset[n]/HR and */dataset[n]/LR
     # the postfixes are appended to the parent directory
@@ -119,7 +127,7 @@ def inference_pipeline(args):
     model_config['center_frame_idx'] = 1
     model = EDVRSTFTempRank(**model_config)
     
-    model.load_state_dict(torch.load(opt['path']['pretrain_network_g'])['params'])
+    model.load_state_dict(torch.load(os.path.join(str(pathlib.Path.home()),opt['path']['pretrain_network_g']))['params'])
     try:
         model.cuda()
     except:
@@ -127,6 +135,7 @@ def inference_pipeline(args):
     dataset_opt = opt['datasets']['val']
     dataset_opt['scale'] = 4
     dataset_opt['gt_size'] = gt_size[:2]
+    print(dataset_opt)
     test_set = XrayVideoTestDatasetSTF(dataset_opt)
     test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=1, shuffle=False, num_workers=0)
     
