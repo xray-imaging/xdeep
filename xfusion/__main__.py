@@ -75,6 +75,14 @@ def init(args):
     args.inference_home.mkdir(exist_ok=True, parents=True)
     args.log_home.mkdir(exist_ok=True, parents=True)
 
+    logger_file = os.path.join(args.log_home,'xfusion.log')
+    
+    #TODO: ask if can run init multiple times, i.e., to run training multiple times
+    if not os.path.exists(logger_file):
+        log.setup_custom_logger(lfname=logger_file)
+    else:
+        raise RuntimeError("{0} already exists".format(logger_file))
+    
     if not os.path.exists(str(args.config)):
         config.write(str(args.config))
     else:
@@ -108,7 +116,12 @@ def download(args):
 def main():
 
     # This is just to print nice logger messages
-    log.setup_custom_logger()
+    try:
+        logger_file = os.path.join(config.get_base_log_dirs(),'xfusion.log')
+    except KeyError:
+        logger_file = None
+    else:
+        log.setup_custom_logger(lfname=logger_file)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', **config.SECTIONS['general']['config'])

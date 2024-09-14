@@ -233,6 +233,12 @@ def get_train_dirs():
     config.read([config_name])
     return config['home']['train-home']
 
+def get_base_log_dirs():
+    config_name = get_config_name()
+    config = configparser.ConfigParser()
+    config.read([config_name])
+    return config['home']['log-home']
+
 def parse_known_args(parser, subparser=False):
     """
     Parse arguments from file and then override by the ones specified on the
