@@ -75,6 +75,14 @@ def init(args):
     args.inference_home.mkdir(exist_ok=True, parents=True)
     args.log_home.mkdir(exist_ok=True, parents=True)
 
+    logger_file = os.path.join(args.log_home,'xfusion.log')
+    
+    #TODO: ask if can run init multiple times, i.e., to run training multiple times
+    if not os.path.exists(logger_file):
+        log.setup_custom_logger(lfname=logger_file)
+    else:
+        raise RuntimeError("{0} already exists".format(logger_file))
+    
     if not os.path.exists(str(args.config)):
         config.write(str(args.config))
     else:
@@ -96,19 +104,32 @@ def download(args):
     url = args.dir_inf
     path = args.out_dir_inf
     zip_file_path = pathlib.Path(path) / url.split('/')[-1]
+
+    if os.path.exists(zip_file_path):
+        raise RuntimeError("{0} already exists".format(zip_file_path))
     #pathlib.Path(path).mkdir(exist_ok=True,parents=True)
-    
-    with http.request('GET', url, preload_content=False) as r, open(zip_file_path, 'wb') as out_file:       
-        shutil.copyfileobj(r, out_file)
-    
-    
-    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-        zip_ref.extractall(path)
+    else:
+        with http.request('GET', url, preload_content=False) as r, open(zip_file_path, 'wb') as out_file:       
+            shutil.copyfileobj(r, out_file)
+        
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            zip_ref.extractall(path)
+        _zip_file = zipfile.ZipFile(zip_file_path)
+        dirname = [n for n in _zip_file.namelist() if n[-3:]=='HR/']
+        print(dirname)
+        path_name = str((zip_file_path.parent / dirname[0]).parent)
+        path_rename = str((zip_file_path.parent / dirname[0]).parent)+'_b0_0'
+        os.rename(path_name,path_rename)
 
 def main():
 
     # This is just to print nice logger messages
-    log.setup_custom_logger()
+    try:
+        logger_file = os.path.join(config.get_base_log_dirs(),'xfusion.log')
+    except KeyError:
+        logger_file = None
+    else:
+        log.setup_custom_logger(lfname=logger_file)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', **config.SECTIONS['general']['config'])
@@ -136,7 +157,8 @@ def main():
         cmd_parser.set_defaults(_func=func)
 
     args = config.parse_known_args(parser, subparser=True)
-    
+
+
     try:
         # load args from default (config.py) if not changed
         args._func(args)

@@ -6,7 +6,7 @@ import torch
 import numpy as np
 import argparse
 import pathlib
-
+import logging
 from collections import OrderedDict
 from PIL import Image
 from pathlib import Path
@@ -16,8 +16,9 @@ from skimage.metrics import structural_similarity as ssim
 from xfusion.inference.model.edvr_models import EDVRSTFTempRank
 from xfusion.inference.dataset.xray_dataset import XrayVideoTestDatasetSTF
 from xfusion.inference.dataset.dist_util import get_dist_info
+from xfusion.train.basicsr.utils import get_root_logger
 from xfusion.utils import yaml_load
-
+from xfusion import config
 
 def tensor2img(tensor, rgb2bgr=True, out_type=np.uint8, min_max=(0, 1)):
     """Convert torch Tensors into image numpy arrays.
@@ -85,30 +86,42 @@ def inference_pipeline(args):
     os.chdir(Path(__file__).parent)
     
     b0 = int(args.b0)
-    print(f'inference under {args.mode} mode')
+    
     topk_times = 5
     lo_frame_sep = int(args.lo_frame_sep)
     hi_frame_sep = int(args.hi_frame_sep)
     img_class = str(args.img_class)
-    print(f'LR frame separation is {lo_frame_sep}')
-    print(f'HR frame separation is {hi_frame_sep}')
     
-    opt_path = args.opt + '/' + rf'config_{img_class}.yml'
-    print(f"path to config file is: {opt_path}")
+    #opt_path = args.opt + '/' + rf'config_{img_class}.yml'
+    opt_path = args.opt
 
     # builds and runs correctly up to here. Please adjust below 
     opt = yaml_load(opt_path)
 
     test_set_name = opt['name']
     gt_size = opt['datasets']['val']['gt_size']
-    out_dir = Path(f'../inf_data/{test_set_name}_stf_lr_r_{lo_frame_sep}_hr_d_{hi_frame_sep*2}_b0_{b0}')
+    
+    dataroot = config.get_inf_data_dirs(img_class)
+    inf_home_dir = Path(dataroot).parent
+    out_dir = inf_home_dir / f'inf_data/{test_set_name}_stf_lr_r_{lo_frame_sep}_hr_d_{hi_frame_sep*2}_b0_{b0}'
     out_dir.mkdir(exist_ok=True,parents=True)
+
+    log_file = os.path.join(out_dir, f"inference.log")
+    logger = get_root_logger(logger_name=__name__, log_level=logging.INFO, log_file=log_file)
+    
+    logger.info(f'inference under {args.mode} mode')
+    logger.info(f'LR frame separation is {lo_frame_sep}')
+    logger.info(f'HR frame separation is {hi_frame_sep}')
+    logger.info(f"path to config file is: {opt_path}")
+    logger.info(f'inference data dir is: {dataroot}')
+    opt['datasets']['val']['dataroot_lq'] = [os.path.join(dataroot,'LR')]
+    opt['datasets']['val']['dataroot_gt'] = [os.path.join(dataroot,'HR')]
     
     # default input file structure is: */dataset[n]/HR and */dataset[n]/LR
     # the postfixes are appended to the parent directory
     opt['datasets']['val']['dataroot_lq'] = [dr+f'_b0_{b0}' if Path(dr).name.lower() != 'lr' else str(Path(dr).parents[0])+f'_b0_{b0}'+f"/{Path(dr).name}" for dr in opt['datasets']['val']['dataroot_lq']]
     opt['datasets']['val']['dataroot_gt'] = [dr+f'_b0_{0}' if Path(dr).name.lower() != 'hr' else str(Path(dr).parents[0])+f'_b0_{b0}'+f"/{Path(dr).name}" for dr in opt['datasets']['val']['dataroot_gt']]
-    print(f"data paths are: {opt['datasets']['val']['dataroot_lq']} for LR and {opt['datasets']['val']['dataroot_gt']} for HR")
+    logger.info(f"data paths are: {opt['datasets']['val']['dataroot_lq']} for LR and {opt['datasets']['val']['dataroot_gt']} for HR")
     
     opt['dist'] = False
     opt['manual_seed'] = 10
@@ -119,14 +132,15 @@ def inference_pipeline(args):
     model_config['center_frame_idx'] = 1
     model = EDVRSTFTempRank(**model_config)
     
-    model.load_state_dict(torch.load(opt['path']['pretrain_network_g'])['params'])
+    model.load_state_dict(torch.load(os.path.join(str(pathlib.Path.home()),opt['path']['pretrain_network_g']))['params'])
     try:
         model.cuda()
     except:
-        print("no gpu detected")
+        logger.info("no gpu detected")
     dataset_opt = opt['datasets']['val']
     dataset_opt['scale'] = 4
     dataset_opt['gt_size'] = gt_size[:2]
+    logger.info(dataset_opt)
     test_set = XrayVideoTestDatasetSTF(dataset_opt)
     test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=1, shuffle=False, num_workers=0)
     
@@ -189,13 +203,13 @@ def inference_pipeline(args):
         psnr = 10. * np.log10(255. * 255. / mse)
         aad = abs(diff).mean()
         _ssim = ssim(result_img,hi_img, data_range=255)
-        print(f"psnr is {psnr} dB")
-        print(f"aad is {aad}")
-        print(f"ssim is {_ssim}")
+        logger.info(f"psnr is {psnr} dB")
+        logger.info(f"aad is {aad}")
+        logger.info(f"ssim is {_ssim}")
         psnrs.append(psnr)
         aads.append(aad)
         ssims.append(_ssim)
-        print(f"attention high is {corr.detach().cpu().squeeze().numpy()[-1]}")
+        logger.info(f"attention high is {corr.detach().cpu().squeeze().numpy()[-1]}")
         atts.append(corr.detach().cpu().squeeze().numpy())
         Image.fromarray(result_img.astype(np.uint8)).save(f"{(out_dir / Path(val_data_['lq_path']).stem)}_{psnr}.png")
 
@@ -210,4 +224,4 @@ def inference_pipeline(args):
         result_dict['mask'] = masks
     import pandas as pd
     pd.DataFrame(result_dict).to_csv(out_dir / f'error_{test_set_name}_stf_lr_r_{lo_frame_sep}_hr_d_{2*hi_frame_sep}_b0_{b0}.csv')
-    print('done')
+    logger.info('done')
