@@ -64,22 +64,22 @@ SECTIONS['home'] = {
 
 SECTIONS['convert'] = {
     'dir-lo': {
-        'default': "./train/train_sharp_bicubic/X4/",
+        'default': os.path.join(XFUSION_TRAIN_HOME,"train_sharp_bicubic/X4/"),
         'type': Path,
         'help': 'name of the directory with the low resolution images',
         'metavar': 'FILE'},
     'dir-hi': {
-        'default': "./train/train_sharp/",
+        'default': os.path.join(XFUSION_TRAIN_HOME,"train_sharp/"),
         'type': Path,
         'help': 'name of the directory with the high resolution images',
         'metavar': 'FILE'},
     'out-dir-lo': {
-        'default': ".",
+        'default': os.path.join(XFUSION_TRAIN_HOME,"train_sharp_mono_1ch_bicubic/X4/"),
         'type': Path,
         'help': 'name of the output directory for the low resolution images',
         'metavar': 'FILE'},
     'out-dir-hi': {
-        'default': ".",
+        'default': os.path.join(XFUSION_TRAIN_HOME,"train_sharp_mono_1ch/"),
         'type': Path,
         'help': 'name of the output directory for the high resolution images',
         'metavar': 'FILE'},
@@ -138,29 +138,6 @@ SECTIONS['train'] = {
         'help': "When set train is True",
         'action': 'store_true'},
   }
-
-SECTIONS['convert'] = {
-    'dir-lo': {
-        'default': "./train/train_sharp_bicubic/X4/",
-        'type': Path,
-        'help': 'name of the directory with the low resolution images',
-        'metavar': 'FILE'},
-    'dir-hi': {
-        'default': "./train/train_sharp/",
-        'type': Path,
-        'help': 'name of the directory with the high resolution images',
-        'metavar': 'FILE'},
-    'out-dir-lo': {
-        'default': ".",
-        'type': Path,
-        'help': 'name of the output directory for the low resolution images',
-        'metavar': 'FILE'},
-    'out-dir-hi': {
-        'default': ".",
-        'type': Path,
-        'help': 'name of the output directory for the high resolution images',
-        'metavar': 'FILE'},
-    }
 
 SECTIONS['download'] = {
     'dir-inf': {
